@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: "{{ .Values.base.name }}"
+  name: "{{ .Values.base.name }}"
+spec:
+  replicas: {{ .Values.base.deploy.replicaCount }}
+  selector:
+    matchLabels:
+      app: "{{ .Values.base.name }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ .Values.base.name }}"
+    spec:
+      containers:
+        - image: {{ .Values.base.deploy.image }}
+          imagePullPolicy: IfNotPresent
+          name: "{{ .Values.base.name }}"
+{{ if .Values.base.deploy.port.enable }}
+          ports:
+            - containerPort: {{ .Values.base.deploy.port.containerPort }}
+              name: {{ .Values.base.deploy.port.name }}
+              protocol: {{ .Values.base.deploy.port.protocol }}
+{{ end }}
+{{ if and .Values.base.deploy.port.enable .Values.base.deploy.healthcheck.enable }}
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /
+              port: {{ .Values.base.deploy.port.name }}
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 50
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /
+              port: {{ .Values.base.deploy.port.name }}
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 50
+{{ end }}
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 256Mi
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: Always

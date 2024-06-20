@@ -1,0 +1,41 @@
+# Default values for base-helm-chart.
+
+base:
+  name: "app-name"
+  
+  deploy:
+    replicaCount: 1
+    image: "base"
+    port:
+      enable: true
+      containerport: 80
+      name: "http"
+    # Only work if container port is enable
+    healthcheck:
+      enable: true
+# List of name/value pairs
+#  
+# - name: NODE_ENV
+#   value: 'production'
+# - name: NODE_PORT
+#   value: '8000'
+    env: {}
+    secrets: {}
+
+  service:
+    enable: true
+    type: "ClusterIP"
+    port: 80
+    targetPort: 80
+    protocol: "TCP"
+  
+# Need to enable service to allow ingress
+  ingress:
+    enable: true
+    annotations: {}
+    host: "myapp.com"
+    path: "/"
+    tls:
+      enable: true
+      issuer: "letsencrypt-issuer"
+

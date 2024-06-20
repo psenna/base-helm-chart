@@ -1,0 +1,32 @@
+{{ if and .Values.base.ingress.enable .Values.base.service.enable }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "{{ .Values.base.name }}-ingress"
+  annotations:
+    {{ if .Values.base.ingress.tls.enable }}
+    cert-manager.io/cluster-issuer: {{ .Values.base.ingress.tls.issuer }}
+    {{ end }}
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  {{ if .Values.base.ingress.tls.enable }}
+  tls:
+  - hosts:
+    - {{ .Values.base.ingress.host }}
+    secretName: "{{ .Values.base.name }}-tls"
+  {{ end }}
+  rules:
+  - host: {{ .Values.base.ingress.host }}
+    http:
+      paths:
+      - backend:
+          service:
+            name: "{{ .Values.base.name }}-svc"
+            port:
+              number: {{ .Values.base.service.port }}
+        path: {{ .Values.base.ingress.path }}
+        pathType: Prefix
+
+{{ end }}
