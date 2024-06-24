@@ -1,4 +1,4 @@
-{{ if .Values.base.service.enable }}
+{{- if .Values.base.service.enable }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -11,4 +11,4 @@ spec:
   selector:
     app: "{{ .Values.base.name }}"
   type: "{{ .Values.base.service.type }}"
-{{ end }}
+{{- end }}

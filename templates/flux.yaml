@@ -1,0 +1,29 @@
+{{- if .Values.base.flux.enable }}
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: "{{ .Values.base.name }}"
+  namespace: flux-system
+spec:
+  image: {{ .Values.base.deploy.image.repository }}
+  interval: 5m
+  {{- if .Values.base.deploy.image.imagePullSecrets }}
+  secretRef:
+    name: {{ .Values.base.deploy.image.imagePullSecrets | quote }}
+  {{- end }}
+
+---
+
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: "{{ .Values.base.name }}"
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: "{{ .Values.base.name }}"
+  policy:
+    semver:
+      range: 0.x.x
+
+{{- end }}

@@ -1,22 +1,23 @@
-{{ if and .Values.base.ingress.enable .Values.base.service.enable }}
+{{- if and .Values.base.ingress.enable .Values.base.service.enable }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: "{{ .Values.base.name }}-ingress"
   annotations:
-    {{ if .Values.base.ingress.tls.enable }}
+    {{- if .Values.base.ingress.tls.enable }}
     cert-manager.io/cluster-issuer: {{ .Values.base.ingress.tls.issuer }}
-    {{ end }}
+    {{- end }}
     kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    {{- range $key, $value := .Values.base.ingress.annotations}}
+    {{ $key }}: {{ $value | quote }}  
+    {{- end }}
 spec:
-  {{ if .Values.base.ingress.tls.enable }}
+  {{- if .Values.base.ingress.tls.enable }}
   tls:
   - hosts:
     - {{ .Values.base.ingress.host }}
     secretName: "{{ .Values.base.name }}-tls"
-  {{ end }}
+  {{- end }}
   rules:
   - host: {{ .Values.base.ingress.host }}
     http:

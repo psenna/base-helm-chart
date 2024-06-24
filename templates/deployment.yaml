@@ -15,20 +15,20 @@ spec:
         app: "{{ .Values.base.name }}"
     spec:
       containers:
-        - image: {{ .Values.base.deploy.image }}
+        - image: "{{ .Values.base.deploy.image.repository }}:{{ .Values.base.deploy.image.tag }}"
           imagePullPolicy: IfNotPresent
           name: "{{ .Values.base.name }}"
-{{ if .Values.base.deploy.port.enable }}
+{{- if .Values.base.deploy.port.enable }}
           ports:
             - containerPort: {{ .Values.base.deploy.port.containerPort }}
               name: {{ .Values.base.deploy.port.name }}
               protocol: {{ .Values.base.deploy.port.protocol }}
-{{ end }}
-{{ if and .Values.base.deploy.port.enable .Values.base.deploy.healthcheck.enable }}
+{{- end }}
+{{- if and .Values.base.deploy.port.enable .Values.base.deploy.healthcheck.enable }}
           livenessProbe:
             failureThreshold: 5
             httpGet:
-              path: /
+              path: {{ .Values.base.deploy.healthcheck.path }}
               port: {{ .Values.base.deploy.port.name }}
               scheme: HTTP
             initialDelaySeconds: 10
@@ -45,13 +45,39 @@ spec:
             periodSeconds: 60
             successThreshold: 1
             timeoutSeconds: 50
-{{ end }}
+{{- end }}
+          {{- if or .Values.base.deploy.env .Values.base.deploy.secrets}}
+          env:
+          {{- range .Values.base.deploy.env }}
+          - name: {{ .name }}
+            value: {{ .value | quote }}
+          {{- end }}
+          {{- range .Values.base.deploy.secrets }}
+          - name: {{ .name }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ .secret_name }}
+                key: {{ .secret_key }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.base.deploy.resources }}
           resources:
+            {{- if .Values.base.deploy.resources.limits }}
             limits:
-              memory: 512Mi
+              {{- if .Values.base.deploy.resources.limits.memory }}
+              memory: {{ .Values.base.deploy.resources.limits.memory | quote }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.base.deploy.resources.requests }}
             requests:
-              memory: 256Mi
+              {{- if .Values.base.deploy.resources.requests.memory }}
+              memory: {{ .Values.base.deploy.resources.requests.memory | quote }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
       dnsPolicy: ClusterFirst
+      {{- if .Values.base.deploy.image.imagePullSecrets }}
       imagePullSecrets:
-        - name: regcred
+        - name: {{ .Values.base.deploy.image.imagePullSecrets | quote }}
+      {{- end }}
       restartPolicy: Always

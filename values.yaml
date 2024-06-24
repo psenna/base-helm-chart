@@ -5,7 +5,10 @@ base:
   
   deploy:
     replicaCount: 1
-    image: "base"
+    image: 
+      repository: "base"
+      tag: "0.0.1"
+#      imagePullSecrets: regcred
     port:
       enable: true
       containerport: 80
@@ -13,14 +16,24 @@ base:
     # Only work if container port is enable
     healthcheck:
       enable: true
-# List of name/value pairs
-#  
+      path: "/"
+
+    env: {}
 # - name: NODE_ENV
 #   value: 'production'
 # - name: NODE_PORT
 #   value: '8000'
-    env: {}
+
     secrets: {}
+#    - name: SECRET_NAME
+#      secret_name: secret_name
+#      secret_key: secret_key
+
+#    resources:
+#      limits:
+#        memory: 512Mi
+#      requests:
+#        memory: 256Mi
 
   service:
     enable: true
@@ -39,3 +52,5 @@ base:
       enable: true
       issuer: "letsencrypt-issuer"
 
+  flux:
+    enable: true
